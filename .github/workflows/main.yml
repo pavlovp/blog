@@ -1,0 +1,31 @@
+name: Blob storage website CI
+
+on:
+    push:
+        branches: [ main]
+    pull_request:
+        branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:            
+    - uses: actions/checkout@v2
+    - uses: azure/login@v1
+      with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: build
+      run: |
+        yarn install
+        yarn build
+    - name: Upload to blob storage
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.0.72
+        inlineScript: |
+            az storage blob upload-batch --account-name pavelpavlovdefaultst -d '$web' -s build
+        
+  # Azure logout 
+    - name: logout
+      run: |
+            az logout
